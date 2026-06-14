@@ -18,6 +18,9 @@ import kotlinx.serialization.Serializable
 // Page where user can view all the listings
 @Serializable object ListingsList
 
+// Page where user can view their profile and own listings
+@Serializable object Profile
+
 // Page where user can view a specific listing including their own
 @Serializable data class ViewListing(val listingId: String)
 
