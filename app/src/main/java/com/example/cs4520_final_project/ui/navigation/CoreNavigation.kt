@@ -1,5 +1,8 @@
 package com.example.cs4520_final_project.ui.navigation
 
+import kotlinx.coroutines.withTimeoutOrNull
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -30,6 +33,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import com.example.cs4520_final_project.data.CampusSwapRepository
+import kotlinx.coroutines.launch
 import com.example.cs4520_final_project.data.ListingInfo
 import com.example.cs4520_final_project.data.ProfileInfo
 import com.example.cs4520_final_project.ui.activities_page.ActivitiesPageScreen
@@ -39,15 +46,35 @@ import com.example.cs4520_final_project.ui.create_profile.CreateProfileScreen
 import com.example.cs4520_final_project.ui.listings_list.ListingsListScreen
 import com.example.cs4520_final_project.ui.profile.ProfileScreen
 import com.example.cs4520_final_project.ui.view_listing.ViewListingScreen
-
+import androidx.compose.runtime.mutableStateMapOf
+import com.example.cs4520_final_project.data.CommentInfo
 @Composable
 fun CoreNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
     val startDestination = if (isLoggedIn) ListingsList else CreateProfile
     val currentDestination by navController.currentBackStackEntryAsState()
+    val commentsByListing = remember { mutableStateMapOf<Long, List<CommentInfo>>() }
 
     var profileInfo by remember { mutableStateOf<ProfileInfo?>(null) }
+    var currentUserId by remember { mutableStateOf("") }
     val listings = remember { mutableStateListOf<ListingInfo>() }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+// Loads Firebase user, profile, and listings when the app starts.
+    LaunchedEffect(Unit) {
+        currentUserId = CampusSwapRepository.signInAnonymouslyIfNeeded()
+        profileInfo = CampusSwapRepository.loadProfile()
+
+        listings.clear()
+        listings.addAll(CampusSwapRepository.loadAllListings())
+
+        if (profileInfo != null) {
+            navController.navigate(ListingsList) {
+                popUpTo(CreateProfile) { inclusive = true }
+            }
+        }
+    }
 
     val showBottomBar = currentDestination?.destination?.hasRoute<CreateProfile>() == false &&
             currentDestination?.destination?.hasRoute<CreateListing>() == false
@@ -139,9 +166,29 @@ fun CoreNavigation(isLoggedIn: Boolean) {
 
             composable<CreateProfile> {
                 CreateProfileScreen { newProfile ->
-                    profileInfo = newProfile
-                    navController.navigate(ListingsList) {
-                        popUpTo(CreateProfile) { inclusive = true }
+                    coroutineScope.launch {
+                        Toast.makeText(context, "Saving profile...", Toast.LENGTH_SHORT).show()
+
+                        val firebaseSaved = withTimeoutOrNull(5000) {
+                            CampusSwapRepository.saveProfile(newProfile)
+                            true
+                        } ?: false
+
+                        profileInfo = newProfile
+
+                        if (firebaseSaved) {
+                            Toast.makeText(context, "Profile saved to Firebase", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Firebase unavailable. Profile saved locally for now.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+
+                        navController.navigate(ListingsList) {
+                            popUpTo(CreateProfile) { inclusive = true }
+                        }
                     }
                 }
             }
@@ -158,9 +205,34 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                 CreateListingScreen(
                     onBack = { navController.popBackStack() },
                     onCreateListing = { newListing ->
-                        listings.add(0, newListing)
-                        navController.navigate(ListingsList) {
-                            popUpTo(CreateListing) { inclusive = true }
+                        coroutineScope.launch {
+                            val firebaseSaved = withTimeoutOrNull(5000) {
+                                CampusSwapRepository.saveListing(newListing)
+                                true
+                            } ?: false
+
+                            if (firebaseSaved) {
+                                listings.clear()
+                                listings.addAll(CampusSwapRepository.loadAllListings())
+
+                                Toast.makeText(
+                                    context,
+                                    "Listing saved to Firebase",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            } else {
+                                listings.add(0, newListing)
+
+                                Toast.makeText(
+                                    context,
+                                    "Firebase unavailable. Listing saved locally for now.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+
+                            navController.navigate(ListingsList) {
+                                popUpTo(CreateListing) { inclusive = true }
+                            }
                         }
                     }
                 )
@@ -169,15 +241,19 @@ fun CoreNavigation(isLoggedIn: Boolean) {
             composable<Profile> {
                 ProfileScreen(
                     profileInfo = profileInfo,
-                    listings = listings,
+                    listings = listings.filter { it.sellerId == currentUserId },
                     onUpdateProfile = { updatedProfile ->
-                        profileInfo = updatedProfile
+                        coroutineScope.launch {
+                            CampusSwapRepository.saveProfile(updatedProfile)
+                            profileInfo = updatedProfile
+                        }
                     },
                     onUpdateListing = { updatedListing ->
-                        val index = listings.indexOfFirst { it.id == updatedListing.id }
+                        coroutineScope.launch {
+                            CampusSwapRepository.updateListing(updatedListing)
 
-                        if (index != -1) {
-                            listings[index] = updatedListing
+                            listings.clear()
+                            listings.addAll(CampusSwapRepository.loadAllListings())
                         }
                     }
                 )
@@ -187,10 +263,57 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                 val route = backStackEntry.arguments?.getString("listingId")
                 val selectedListing = listings.firstOrNull { it.id.toString() == route }
 
+                LaunchedEffect(selectedListing?.id) {
+                    val listingId = selectedListing?.id
+
+                    if (listingId != null) {
+                        val loadedComments = withTimeoutOrNull(5000) {
+                            CampusSwapRepository.loadCommentsForListing(listingId)
+                        }
+
+                        if (loadedComments != null) {
+                            commentsByListing[listingId] = loadedComments
+                        }
+                    }
+                }
+
                 ViewListingScreen(
                     listing = selectedListing,
+                    comments = selectedListing?.let { commentsByListing[it.id] } ?: emptyList(),
                     onBack = { navController.popBackStack() },
-                    onMessageSeller = { navController.navigate(Chat("seller")) }
+                    onMessageSeller = { navController.navigate(Chat("seller")) },
+                    onAddComment = { commentText ->
+                        val listing = selectedListing
+
+                        if (listing != null) {
+                            coroutineScope.launch {
+                                val newComment = CommentInfo(
+                                    listingId = listing.id,
+                                    commenterId = currentUserId.ifBlank { "local-user" },
+                                    commenterName = profileInfo?.fullName?.ifBlank { "CampusSwap User" } ?: "CampusSwap User",
+                                    text = commentText
+                                )
+
+                                val firebaseSaved = withTimeoutOrNull(5000) {
+                                    CampusSwapRepository.saveComment(newComment)
+                                    true
+                                } ?: false
+
+                                val oldComments = commentsByListing[listing.id] ?: emptyList()
+                                commentsByListing[listing.id] = oldComments + newComment
+
+                                if (firebaseSaved) {
+                                    Toast.makeText(context, "Comment saved to Firebase", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Firebase unavailable. Comment saved locally for now.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
                 )
             }
         }
