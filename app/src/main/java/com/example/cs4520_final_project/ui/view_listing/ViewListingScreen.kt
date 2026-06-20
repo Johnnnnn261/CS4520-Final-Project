@@ -57,26 +57,24 @@ fun ViewListingScreen(
 ) {
     var commentText by remember { mutableStateOf("") }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Listing Detail") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+    Column {
+
+        TopAppBar(
+            title = { Text("Listing Detail") },
+            navigationIcon = {
+                IconButton(onClick = onBack) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
             )
-        }
-    ) { padding ->
+        )
+
         if (listing == null) {
             Box(
                 modifier = Modifier
-                    .padding(padding)
                     .fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
@@ -85,7 +83,6 @@ fun ViewListingScreen(
         } else {
             LazyColumn(
                 modifier = Modifier
-                    .padding(padding)
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
@@ -187,7 +184,10 @@ fun ViewListingScreen(
 
                 if (comments.isEmpty()) {
                     item {
-                        Text("No comments yet. Be the first to ask about this item.", color = Color.Gray)
+                        Text(
+                            "No comments yet. Be the first to ask about this item.",
+                            color = Color.Gray
+                        )
                     }
                 } else {
                     items(comments) { comment ->

@@ -309,6 +309,14 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                         }
                     })
             }
+
+
+            composable<SearchListings> {
+                SearchListingsScreen(
+                    listings = listings, onListingClick = { listingId ->
+                        navController.navigate(ViewListing(listingId.toString()))
+                    })
+            }
         }
     }
 }

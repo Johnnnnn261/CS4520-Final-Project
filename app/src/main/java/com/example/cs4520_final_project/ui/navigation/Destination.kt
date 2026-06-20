@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ViewListing(val listingId: String)
 
 
-
+@Serializable object SearchListings
 
 
 
