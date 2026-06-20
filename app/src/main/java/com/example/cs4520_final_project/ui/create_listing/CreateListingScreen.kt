@@ -52,19 +52,22 @@ import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.ListingInfo
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import com.example.cs4520_final_project.ui.common.DropdownOption
+import com.example.cs4520_final_project.ui.common.conditionOptions
+import com.example.cs4520_final_project.ui.common.paymentOptions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateListingScreen(
-    onBack: () -> Unit,
-    onCreateListing: (ListingInfo) -> Unit
+    onBack: () -> Unit, onCreateListing: (ListingInfo) -> Unit
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var payment by remember { mutableStateOf("") }
     var paymentMenuExpanded by remember { mutableStateOf(false) }
-    val paymentOptions = listOf("Zelle", "Venmo", "Cash", "PayPal")
+    var conditionMenuExpanded by remember { mutableStateOf(false) }
+
     var location by remember { mutableStateOf("") }
     var condition by remember { mutableStateOf("") }
     var listingPhotoUri by remember { mutableStateOf<Uri?>(null) }
@@ -85,8 +88,7 @@ fun CreateListingScreen(
                 TextButton(onClick = { errorMessage = null }) {
                     Text("OK")
                 }
-            }
-        )
+            })
     }
 
     Scaffold(
@@ -103,8 +105,7 @@ fun CreateListingScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
             )
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -112,9 +113,7 @@ fun CreateListingScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             ListingTextField(
-                value = title,
-                onValueChange = { title = it },
-                placeholder = "Title"
+                value = title, onValueChange = { title = it }, placeholder = "Title"
             )
 
             ListingTextField(
@@ -129,63 +128,26 @@ fun CreateListingScreen(
                 placeholder = "Price",
                 keyboardType = KeyboardType.Number
             )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { paymentMenuExpanded = true }
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 18.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text("Payment")
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = if (payment.isBlank()) "Select payment" else payment,
-                            color = if (payment.isBlank()) Color.Gray else Color.Black
-                        )
-
-                        Icon(
-                            Icons.Default.ChevronRight,
-                            contentDescription = null,
-                            tint = Color.Gray
-                        )
-                    }
-                }
-
-                DropdownMenu(
-                    expanded = paymentMenuExpanded,
-                    onDismissRequest = { paymentMenuExpanded = false }
-                ) {
-                    paymentOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                payment = option
-                                paymentMenuExpanded = false
-                            }
-                        )
-                    }
-                }
-            }
+            ListingTextField(
+                value = location, onValueChange = { location = it }, placeholder = "Location"
+            )
             HorizontalDivider(Modifier, thickness = 0.5.dp, color = Color.LightGray)
 
-            ListingTextField(
-                value = location,
-                onValueChange = { location = it },
-                placeholder = "Location"
-            )
+            DropdownOption("Select Payment", paymentOptions, payment, { option ->
+                if (option != null) {
+                    payment = option
+                }
+            })
+            DropdownOption("Select Condition", conditionOptions, condition, { option ->
+                if (option != null) {
+                    condition = option
+                }
+            })
+            HorizontalDivider(Modifier, thickness = 0.5.dp, color = Color.LightGray)
 
-            ListingTextField(
-                value = condition,
-                onValueChange = { condition = it },
-                placeholder = "Condition"
-            )
+
+
+
 
             Spacer(modifier = Modifier.height(32.dp))
 
