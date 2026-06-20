@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.FilterListOff
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -35,10 +38,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.CampusSwapRepository
 import com.example.cs4520_final_project.data.ListingInfo
+import com.example.cs4520_final_project.ui.common.DropdownOption
 import com.example.cs4520_final_project.ui.common.ListingCard
+import com.example.cs4520_final_project.ui.common.conditionOptions
+import com.example.cs4520_final_project.ui.common.paymentOptions
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -50,14 +57,16 @@ fun SearchListingsScreen(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedPayment by remember { mutableStateOf<String?>(null) }
-    var paymentDropdownExpanded by remember { mutableStateOf(false) }
-    val paymentOptions = listOf("Zelle", "Venmo", "Cash", "PayPal")
+
+    var selectedCondition by remember { mutableStateOf<String?>(null) }
+    var showFilters by remember { mutableStateOf(false) }
 
     val displayedListings = remember(listings, searchQuery, selectedPayment) {
         val q = searchQuery.trim().lowercase()
-        listings
-            .filter { q.isBlank() || it.title.lowercase().contains(q) || it.description.lowercase().contains(q) }
-            .filter { selectedPayment == null || it.payment == selectedPayment }
+        listings.filter {
+            q.isBlank() || it.title.lowercase().contains(q) || it.description.lowercase()
+                .contains(q)
+        }.filter { selectedPayment == null || it.payment == selectedPayment }
     }
 
     Scaffold(
@@ -74,72 +83,66 @@ fun SearchListingsScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Search listings...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { searchQuery = "" }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear")
-                        }
-                    }
-                },
-                singleLine = true,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            )
-
-            ExposedDropdownMenuBox(
-                expanded = paymentDropdownExpanded,
-                onExpandedChange = { paymentDropdownExpanded = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 12.dp)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
-                    value = selectedPayment ?: "All payment types",
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Payment") },
-                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = paymentDropdownExpanded) },
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Search listings...") },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(onClick = { showFilters = !showFilters }) {
+                    Icon(
+                        imageVector = if (showFilters) Icons.Default.FilterListOff else Icons.Default.FilterList,
+                        contentDescription = "Filter",
+                        tint = if (showFilters || selectedPayment != null || selectedCondition != null) MaterialTheme.colorScheme.primary else Color.Gray
+                    )
+                }
+            }
+            if (showFilters) {
+                DropdownOption(
+                    label = "Payment",
+                    options = paymentOptions,
+                    selected = selectedPayment,
+                    onSelectionChange = { selectedPayment = it },
+                    allLabel = "All payment types",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .menuAnchor()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp)
                 )
-                ExposedDropdownMenu(
-                    expanded = paymentDropdownExpanded,
-                    onDismissRequest = { paymentDropdownExpanded = false }
-                ) {
-                    DropdownMenuItem(
-                        text = { Text("All payment types") },
-                        onClick = {
-                            selectedPayment = null
-                            paymentDropdownExpanded = false
-                        }
-                    )
-                    paymentOptions.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                selectedPayment = option
-                                paymentDropdownExpanded = false
-                            }
-                        )
-                    }
-                }
+                DropdownOption(
+                    label = "Condition",
+                    options = conditionOptions,
+                    selected = selectedCondition,
+                    onSelectionChange = { selectedCondition = it },
+                    allLabel = "All Conditions",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 12.dp)
+                )
             }
 
             if (displayedListings.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
-                        if (searchQuery.isBlank() && selectedPayment == null)
-                            "No listings yet. Tap + to create your first post."
-                        else
-                            "No listings match your filters."
+                        if (searchQuery.isBlank() && selectedPayment == null) "No listings yet. Tap + to create your first post."
+                        else "No listings match your filters."
                     )
                 }
             } else {
