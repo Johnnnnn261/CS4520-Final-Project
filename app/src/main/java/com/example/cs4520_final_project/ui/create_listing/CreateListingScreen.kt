@@ -102,7 +102,6 @@ fun CreateListingScreen(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
-                windowInsets = WindowInsets(0)
             )
         }
     ) { innerPadding ->

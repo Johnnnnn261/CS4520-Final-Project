@@ -2,6 +2,9 @@ package com.example.cs4520_final_project.ui.navigation
 
 import kotlinx.coroutines.withTimeoutOrNull
 import android.widget.Toast
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,7 +50,10 @@ import com.example.cs4520_final_project.ui.listings_list.ListingsListScreen
 import com.example.cs4520_final_project.ui.profile.ProfileScreen
 import com.example.cs4520_final_project.ui.view_listing.ViewListingScreen
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.platform.LocalLayoutDirection
 import com.example.cs4520_final_project.data.CommentInfo
+import com.example.cs4520_final_project.ui.search_listings.SearchListingsScreen
+
 @Composable
 fun CoreNavigation(isLoggedIn: Boolean) {
     val navController = rememberNavController()
@@ -76,10 +82,12 @@ fun CoreNavigation(isLoggedIn: Boolean) {
         }
     }
 
-    val showBottomBar = currentDestination?.destination?.hasRoute<CreateProfile>() == false &&
-            currentDestination?.destination?.hasRoute<CreateListing>() == false
+    val showBottomBar =
+        currentDestination?.destination?.hasRoute<CreateProfile>() == false && currentDestination?.destination?.hasRoute<CreateListing>() == false
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),  // add this
+
         bottomBar = {
             if (showBottomBar) {
                 Surface(shadowElevation = 16.dp, color = Color.White) {
@@ -93,32 +101,23 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 )
                             },
                             selected = currentDestination?.destination?.hasRoute<ListingsList>() == true,
-                            onClick = { navController.navigate(ListingsList) }
-                        )
+                            onClick = { navController.navigate(ListingsList) })
 
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            },
-                            selected = false,
-                            onClick = { navController.navigate(ListingsList) }
-                        )
+                        NavigationBarItem(icon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = "Search",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }, selected = false, onClick = { navController.navigate(SearchListings) })
 
-                        NavigationBarItem(
-                            icon = {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = "Add",
-                                    modifier = Modifier.size(32.dp)
-                                )
-                            },
-                            selected = false,
-                            onClick = { navController.navigate(CreateListing) }
-                        )
+                        NavigationBarItem(icon = {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Add",
+                                modifier = Modifier.size(32.dp)
+                            )
+                        }, selected = false, onClick = { navController.navigate(CreateListing) })
 
                         NavigationBarItem(
                             icon = {
@@ -131,8 +130,7 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 }
                             },
                             selected = currentDestination?.destination?.hasRoute<ActivitiesPage>() == true,
-                            onClick = { navController.navigate(ActivitiesPage) }
-                        )
+                            onClick = { navController.navigate(ActivitiesPage) })
 
                         NavigationBarItem(
                             icon = {
@@ -143,25 +141,22 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 )
                             },
                             selected = currentDestination?.destination?.hasRoute<Profile>() == true,
-                            onClick = { navController.navigate(Profile) }
-                        )
+                            onClick = { navController.navigate(Profile) })
                     }
                 }
             }
-        }
-    ) { innerPadding ->
+        }) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = startDestination,
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())  // don't want padding on top
+
         ) {
             composable<ListingsList> {
                 ListingsListScreen(
-                    listings = listings,
-                    onListingClick = { listingId ->
+                    listings = listings, onListingClick = { listingId ->
                         navController.navigate(ViewListing(listingId.toString()))
-                    }
-                )
+                    })
             }
 
             composable<CreateProfile> {
@@ -177,7 +172,8 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                         profileInfo = newProfile
 
                         if (firebaseSaved) {
-                            Toast.makeText(context, "Profile saved to Firebase", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Profile saved to Firebase", Toast.LENGTH_SHORT)
+                                .show()
                         } else {
                             Toast.makeText(
                                 context,
@@ -216,9 +212,7 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 listings.addAll(CampusSwapRepository.loadAllListings())
 
                                 Toast.makeText(
-                                    context,
-                                    "Listing saved to Firebase",
-                                    Toast.LENGTH_SHORT
+                                    context, "Listing saved to Firebase", Toast.LENGTH_SHORT
                                 ).show()
                             } else {
                                 listings.add(0, newListing)
@@ -234,8 +228,7 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 popUpTo(CreateListing) { inclusive = true }
                             }
                         }
-                    }
-                )
+                    })
             }
 
             composable<Profile> {
@@ -255,8 +248,7 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                             listings.clear()
                             listings.addAll(CampusSwapRepository.loadAllListings())
                         }
-                    }
-                )
+                    })
             }
 
             composable<ViewListing> { backStackEntry ->
@@ -290,9 +282,9 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 val newComment = CommentInfo(
                                     listingId = listing.id,
                                     commenterId = currentUserId.ifBlank { "local-user" },
-                                    commenterName = profileInfo?.fullName?.ifBlank { "CampusSwap User" } ?: "CampusSwap User",
-                                    text = commentText
-                                )
+                                    commenterName = profileInfo?.fullName?.ifBlank { "CampusSwap User" }
+                                        ?: "CampusSwap User",
+                                    text = commentText)
 
                                 val firebaseSaved = withTimeoutOrNull(5000) {
                                     CampusSwapRepository.saveComment(newComment)
@@ -303,7 +295,9 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 commentsByListing[listing.id] = oldComments + newComment
 
                                 if (firebaseSaved) {
-                                    Toast.makeText(context, "Comment saved to Firebase", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context, "Comment saved to Firebase", Toast.LENGTH_SHORT
+                                    ).show()
                                 } else {
                                     Toast.makeText(
                                         context,
@@ -313,8 +307,7 @@ fun CoreNavigation(isLoggedIn: Boolean) {
                                 }
                             }
                         }
-                    }
-                )
+                    })
             }
         }
     }
