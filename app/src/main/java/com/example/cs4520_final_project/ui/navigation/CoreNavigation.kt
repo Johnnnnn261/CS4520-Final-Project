@@ -2,9 +2,11 @@ package com.example.cs4520_final_project.ui.navigation
 
 import kotlinx.coroutines.withTimeoutOrNull
 import android.widget.Toast
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -50,14 +53,14 @@ import com.example.cs4520_final_project.ui.listings_list.ListingsListScreen
 import com.example.cs4520_final_project.ui.profile.ProfileScreen
 import com.example.cs4520_final_project.ui.view_listing.ViewListingScreen
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalLayoutDirection
 import com.example.cs4520_final_project.data.CommentInfo
 import com.example.cs4520_final_project.ui.search_listings.SearchListingsScreen
 
 @Composable
-fun CoreNavigation(isLoggedIn: Boolean) {
+fun CoreNavigation() {
     val navController = rememberNavController()
-    val startDestination = if (isLoggedIn) ListingsList else CreateProfile
     val currentDestination by navController.currentBackStackEntryAsState()
     val commentsByListing = remember { mutableStateMapOf<Long, List<CommentInfo>>() }
 
@@ -66,21 +69,24 @@ fun CoreNavigation(isLoggedIn: Boolean) {
     val listings = remember { mutableStateListOf<ListingInfo>() }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
+    var isLoading by remember { mutableStateOf(true) }
 // Loads Firebase user, profile, and listings when the app starts.
     LaunchedEffect(Unit) {
         currentUserId = CampusSwapRepository.signInAnonymouslyIfNeeded()
         profileInfo = CampusSwapRepository.loadProfile()
-
         listings.clear()
         listings.addAll(CampusSwapRepository.loadAllListings())
-
-        if (profileInfo != null) {
-            navController.navigate(ListingsList) {
-                popUpTo(CreateProfile) { inclusive = true }
-            }
-        }
+        isLoading = false
     }
+
+    if (isLoading) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
+        }
+        return
+    }
+
+    val startDestination = if (profileInfo != null) ListingsList else CreateProfile
 
     val showBottomBar =
         currentDestination?.destination?.hasRoute<CreateProfile>() == false && currentDestination?.destination?.hasRoute<CreateListing>() == false

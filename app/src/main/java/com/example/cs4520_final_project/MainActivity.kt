@@ -20,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CS4520FinalProjectTheme {
-                CoreNavigation(false)
+                CoreNavigation()
             }
         }
     }
