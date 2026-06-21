@@ -160,12 +160,8 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
 
             composable<CreateProfile> {
                 CreateProfileScreen { newProfile ->
-                    coroutineScope.launch {
-                        campusSwapVm.updateProfile(newProfile)
-                        navController.navigate(ListingsList) {
-                            popUpTo(CreateProfile) { inclusive = true }
-                        }
-                    }
+                    campusSwapVm.updateProfile(newProfile)
+                    navController.navigate(ListingsList)
                 }
             }
 
@@ -192,7 +188,7 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
 
             composable<Profile> {
                 ProfileScreen(
-                    profileInfo = profileInfo,
+                    profileInfo = profileInfo!!,
                     listings = listings.filter { it.sellerId == currentUserId },
                     onUpdateProfile = { updatedProfile ->
                         campusSwapVm.updateProfile(updatedProfile)

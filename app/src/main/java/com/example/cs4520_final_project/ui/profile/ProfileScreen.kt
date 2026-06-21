@@ -51,7 +51,7 @@ import com.example.cs4520_final_project.data.ProfileInfo
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    profileInfo: ProfileInfo?,
+    profileInfo: ProfileInfo,
     listings: List<ListingInfo>,
     onUpdateProfile: (ProfileInfo) -> Unit,
     onUpdateListing: (ListingInfo) -> Unit,

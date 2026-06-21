@@ -23,10 +23,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.ProfileInfo
+import com.example.cs4520_final_project.ui.common.Avatar
 
 @Composable
 fun ProfileInfoCard(
-    profileInfo: ProfileInfo?, onEditProfile: () -> Unit
+    profileInfo: ProfileInfo, onEditProfile: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -36,29 +37,19 @@ fun ProfileInfoCard(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    modifier = Modifier
-                        .size(72.dp)
-                        .clip(CircleShape)
-                        .background(Color.LightGray),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(if (profileInfo?.photoUri == null) "No\nPhoto" else "Photo")
-                }
+                Avatar(profileInfo.fullName, profileInfo.photoUri)
 
                 Column(modifier = Modifier.padding(start = 16.dp)) {
-                    Text(profileInfo?.fullName ?: "No profile name", fontWeight = FontWeight.Bold)
-                    Text(profileInfo?.schoolEmail ?: "No school email", color = Color.Gray)
-                    Text(profileInfo?.campusArea ?: "No campus area", color = Color.Gray)
+                    Text(profileInfo.fullName, fontWeight = FontWeight.Bold)
+                    Text(profileInfo.schoolEmail, color = Color.Gray)
+                    Text(profileInfo.campusArea, color = Color.Gray)
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = onEditProfile,
-                enabled = profileInfo != null,
-                modifier = Modifier.fillMaxWidth()
+                onClick = onEditProfile, modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Edit Profile")
             }

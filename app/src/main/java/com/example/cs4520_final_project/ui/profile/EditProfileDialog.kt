@@ -1,5 +1,7 @@
 package com.example.cs4520_final_project.ui.profile
 
+import android.R.attr.label
+import android.R.attr.singleLine
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.KeyboardOptions
@@ -24,6 +26,8 @@ fun EditProfileDialog(
     var fullName by remember { mutableStateOf(profileInfo.fullName) }
     var schoolEmail by remember { mutableStateOf(profileInfo.schoolEmail) }
     var campusArea by remember { mutableStateOf(profileInfo.campusArea) }
+    var photoUri by remember { mutableStateOf(profileInfo.photoUri) }
+
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(onDismissRequest = onDismiss, title = { Text("Edit Profile") }, text = {
@@ -46,7 +50,12 @@ fun EditProfileDialog(
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
             )
-
+            OutlinedTextField(
+                value = photoUri ?: "",
+                onValueChange = { photoUri = it },
+                label = { Text("Photo Url") },
+                singleLine = true
+            )
             OutlinedTextField(
                 value = campusArea,
                 onValueChange = { campusArea = it },
@@ -69,7 +78,8 @@ fun EditProfileDialog(
                         profileInfo.copy(
                             fullName = fullName,
                             schoolEmail = schoolEmail,
-                            campusArea = campusArea
+                            campusArea = campusArea,
+                            photoUri = photoUri
                         )
                     )
                 }
