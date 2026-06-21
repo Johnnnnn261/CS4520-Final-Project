@@ -46,6 +46,7 @@ import com.example.cs4520_final_project.ui.common.DropdownOption
 import com.example.cs4520_final_project.ui.common.ListingCard
 import com.example.cs4520_final_project.ui.common.conditionOptions
 import com.example.cs4520_final_project.ui.common.paymentOptions
+import com.example.cs4520_final_project.ui.view_listing.CampusSwapViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -53,7 +54,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchListingsScreen(
-    listings: List<ListingInfo>, onListingClick: (Long) -> Unit
+    listings: List<ListingInfo>, onListingClick: (Long) -> Unit, vm: CampusSwapViewModel
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var selectedPayment by remember { mutableStateOf<String?>(null) }
@@ -61,12 +62,12 @@ fun SearchListingsScreen(
     var selectedCondition by remember { mutableStateOf<String?>(null) }
     var showFilters by remember { mutableStateOf(false) }
 
-    val displayedListings = remember(listings, searchQuery, selectedPayment) {
+    val displayedListings = remember(listings, searchQuery, selectedPayment, selectedCondition) {
         val q = searchQuery.trim().lowercase()
         listings.filter {
             q.isBlank() || it.title.lowercase().contains(q) || it.description.lowercase()
                 .contains(q)
-        }.filter { selectedPayment == null || it.payment == selectedPayment }
+        }
     }
 
     Scaffold(
@@ -118,7 +119,10 @@ fun SearchListingsScreen(
                     label = "Payment",
                     options = paymentOptions,
                     selected = selectedPayment,
-                    onSelectionChange = { selectedPayment = it },
+                    onSelectionChange = {
+                        selectedPayment = it
+                        vm.setPaymentFilter(it)
+                    },
                     allLabel = "All payment types",
                     modifier = Modifier
                         .fillMaxWidth()
@@ -129,7 +133,10 @@ fun SearchListingsScreen(
                     label = "Condition",
                     options = conditionOptions,
                     selected = selectedCondition,
-                    onSelectionChange = { selectedCondition = it },
+                    onSelectionChange = {
+                        selectedCondition = it
+                        vm.setConditionFilter(it)
+                    },
                     allLabel = "All Conditions",
                     modifier = Modifier
                         .fillMaxWidth()

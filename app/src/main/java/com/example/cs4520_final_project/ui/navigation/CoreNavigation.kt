@@ -68,7 +68,6 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
     val profileInfo by campusSwapVm.profileInfo.collectAsState()
     val listings by campusSwapVm.listings.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
     val isLoading = profileInfo == null && listings.isEmpty()
 
     if (isLoading) {
@@ -222,7 +221,7 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
                         if (listing != null) {
                             campusSwapVm.saveComment(
                                 CommentInfo(
-                                    listingId = listing.id,
+                                listingId = listing.id,
                                 commenterId = currentUserId.ifBlank { "local-user" },
                                 commenterName = profileInfo?.fullName?.ifBlank { "CampusSwap User" }
                                     ?: "CampusSwap User",
@@ -236,7 +235,8 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
                 SearchListingsScreen(
                     listings = listings, onListingClick = { listingId ->
                         navController.navigate(ViewListing(listingId.toString()))
-                    })
+                    }, campusSwapVm
+                )
             }
         }
     }

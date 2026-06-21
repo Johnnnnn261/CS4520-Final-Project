@@ -1,5 +1,6 @@
 package com.example.cs4520_final_project.data
 
+import android.util.Log
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -55,10 +56,17 @@ class CampusSwapRepository(private val uid: String) {
         listingCollection.document(listingId.toString()).delete().await()
     }
 
-    fun observeListings(): Flow<List<ListingInfo>> = callbackFlow {
-        val registration = listingCollection.orderBy(
-            "createdAt", Query.Direction.DESCENDING
-        ).addSnapshotListener { snapshot, error ->
+    fun observeListings(
+        payment: String? = null, condition: String? = null
+    ): Flow<List<ListingInfo>> = callbackFlow {
+        Log.d("Filter", "observeListings called with payment=$payment condition=$condition")
+
+        var query: Query = listingCollection.orderBy("createdAt", Query.Direction.DESCENDING)
+
+        if (payment != null) query = query.whereEqualTo("payment", payment)
+        if (condition != null) query = query.whereEqualTo("condition", condition)
+
+        val registration = query.addSnapshotListener { snapshot, error ->  // use query not listingCollection
             if (error != null) {
                 close(error)
                 return@addSnapshotListener

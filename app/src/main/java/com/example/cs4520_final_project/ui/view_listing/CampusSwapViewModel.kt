@@ -1,5 +1,6 @@
 package com.example.cs4520_final_project.ui.view_listing
 
+import android.util.Log
 import com.example.cs4520_final_project.data.AuthRepository
 import kotlin.collections.filterNot
 
@@ -15,6 +16,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -26,6 +29,17 @@ class CampusSwapViewModel(
 
     private val _listings = MutableStateFlow<List<ListingInfo>>(emptyList())
     val listings: StateFlow<List<ListingInfo>> = _listings.asStateFlow()
+    private val _selectedPayment = MutableStateFlow<String?>(null)
+    private val _selectedCondition = MutableStateFlow<String?>(null)
+
+    fun setPaymentFilter(payment: String?) {
+        _selectedPayment.value = payment
+//        Log.d("Filter", "payment set to $payment")
+    }
+
+    fun setConditionFilter(condition: String?) {
+        _selectedCondition.value = condition
+    }
 
     private val _profileInfo = MutableStateFlow<ProfileInfo?>(null)
     val profileInfo: StateFlow<ProfileInfo?> = _profileInfo.asStateFlow()
@@ -41,7 +55,13 @@ class CampusSwapViewModel(
                     firestoreRepo = CampusSwapRepository(user.uid)
                     _profileInfo.value = firestoreRepo!!.loadProfile()
                     observeJob = viewModelScope.launch {
-                        firestoreRepo!!.observeListings().collect { _listings.value = it }
+                        // combine watches both filters
+                        combine(_selectedPayment, _selectedCondition) { payment, condition ->
+                            payment to condition
+                        }.collectLatest { (payment, condition) -> // prevents race condition
+                            firestoreRepo!!.observeListings(payment, condition)
+                                .collect { _listings.value = it }
+                        }
                     }
                 } else {
                     firestoreRepo = null
