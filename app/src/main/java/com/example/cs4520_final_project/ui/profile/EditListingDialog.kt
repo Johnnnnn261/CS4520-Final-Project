@@ -16,6 +16,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.ListingInfo
+import com.example.cs4520_final_project.ui.common.DropdownOption
+import com.example.cs4520_final_project.ui.common.conditionOptions
+import com.example.cs4520_final_project.ui.common.paymentOptions
 
 @Composable
 fun EditListingDialog(
@@ -57,24 +60,21 @@ fun EditListingDialog(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
 
-            OutlinedTextField(
-                value = payment,
-                onValueChange = { payment = it },
-                label = { Text("Payment") },
-                singleLine = true
-            )
+            DropdownOption("Select Payment", paymentOptions, payment, { option ->
+                if (option != null) {
+                    payment = option
+                }
+            })
+            DropdownOption("Select Condition", conditionOptions, condition, { option ->
+                if (option != null) {
+                    condition = option
+                }
+            })
 
             OutlinedTextField(
                 value = location,
                 onValueChange = { location = it },
                 label = { Text("Location") },
-                singleLine = true
-            )
-
-            OutlinedTextField(
-                value = condition,
-                onValueChange = { condition = it },
-                label = { Text("Condition") },
                 singleLine = true
             )
         }
