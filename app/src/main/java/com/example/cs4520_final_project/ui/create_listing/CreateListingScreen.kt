@@ -65,8 +65,6 @@ fun CreateListingScreen(
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var payment by remember { mutableStateOf("") }
-    var paymentMenuExpanded by remember { mutableStateOf(false) }
-    var conditionMenuExpanded by remember { mutableStateOf(false) }
 
     var location by remember { mutableStateOf("") }
     var condition by remember { mutableStateOf("") }
