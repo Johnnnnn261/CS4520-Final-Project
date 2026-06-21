@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.cs4520_final_project.ui.auth.AuthScreen
 import com.example.cs4520_final_project.ui.auth.AuthState
 import com.example.cs4520_final_project.ui.auth.AuthViewModel
+import com.example.cs4520_final_project.ui.common.CircleLoader
 import com.example.cs4520_final_project.ui.create_profile.CreateProfileScreen
 import com.example.cs4520_final_project.ui.navigation.CoreNavigation
 import com.example.cs4520_final_project.ui.theme.CS4520FinalProjectTheme
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
                 val authVm: AuthViewModel = viewModel()
                 val state by authVm.authState.collectAsStateWithLifecycle()
                 when (state) {
-                    AuthState.Loading -> Unit
+                    AuthState.Loading -> CircleLoader()
                     AuthState.SignedOut -> {
                         AuthScreen()
                     }
