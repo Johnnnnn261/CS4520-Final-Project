@@ -17,6 +17,8 @@ import kotlin.jvm.java
 class CampusSwapRepository(private val uid: String) {
     private val db = FirebaseFirestore.getInstance()
 
+
+    // Profile
     suspend fun saveProfile(profileInfo: ProfileInfo) {
 
         db.collection("users").document(uid).set(profileInfo, SetOptions.merge()).await()
@@ -29,6 +31,8 @@ class CampusSwapRepository(private val uid: String) {
         return snapshot.toObject(ProfileInfo::class.java)
     }
 
+
+    // Listings
     private val listingCollection = Firebase.firestore.collection("items")
 
     suspend fun saveListing(listingInfo: ListingInfo): ListingInfo {
@@ -65,6 +69,8 @@ class CampusSwapRepository(private val uid: String) {
         awaitClose { registration.remove() }
     }
 
+
+    // Comments
     suspend fun saveComment(commentInfo: CommentInfo) {
         listingCollection.document(commentInfo.listingId.toString()).collection("comments")
             .document(commentInfo.id.toString()).set(commentInfo).await()
