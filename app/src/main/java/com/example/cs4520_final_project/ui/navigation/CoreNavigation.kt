@@ -74,7 +74,11 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
         CircleLoader()
         return
     }
-
+    LaunchedEffect(currentDestination) {
+        if (currentDestination?.destination?.hasRoute<SearchListings>() == false) {
+            campusSwapVm.clearFilters()
+        }
+    }
     val startDestination = if (profileInfo != null) ListingsList else CreateProfile
 
     val showBottomBar =

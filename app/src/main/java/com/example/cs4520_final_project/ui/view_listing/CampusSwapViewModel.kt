@@ -41,6 +41,10 @@ class CampusSwapViewModel(
         _selectedCondition.value = condition
     }
 
+    fun clearFilters() {
+        _selectedPayment.value = null
+        _selectedCondition.value = null
+    }
     private val _profileInfo = MutableStateFlow<ProfileInfo?>(null)
     val profileInfo: StateFlow<ProfileInfo?> = _profileInfo.asStateFlow()
     private var firestoreRepo: CampusSwapRepository? = null
