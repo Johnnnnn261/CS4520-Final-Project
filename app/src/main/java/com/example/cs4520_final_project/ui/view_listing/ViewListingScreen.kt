@@ -45,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.CommentInfo
 import com.example.cs4520_final_project.data.ListingInfo
+import com.example.cs4520_final_project.ui.common.ListingImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,19 +88,7 @@ fun ViewListingScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(250.dp)
-                            .clip(RoundedCornerShape(18.dp))
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            if (listing.photoUri == null) "No Photo Added" else "Photo Selected",
-                            color = Color.DarkGray
-                        )
-                    }
+                    ListingImage(listing.photoUri, listing.title)
                 }
 
                 item {

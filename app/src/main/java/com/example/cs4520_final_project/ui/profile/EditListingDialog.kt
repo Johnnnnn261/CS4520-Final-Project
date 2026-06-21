@@ -29,6 +29,7 @@ fun EditListingDialog(
     var price by remember { mutableStateOf(listing.price) }
     var payment by remember { mutableStateOf(listing.payment) }
     var location by remember { mutableStateOf(listing.location) }
+    var photoUri by remember { mutableStateOf(listing.photoUri) }
     var condition by remember { mutableStateOf(listing.condition) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
@@ -58,6 +59,14 @@ fun EditListingDialog(
                 label = { Text("Price") },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = photoUri ?: "",
+                onValueChange = { photoUri = it },
+                label = { Text("Photo Url") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
             )
 
             DropdownOption("Select Payment", paymentOptions, payment, { option ->
@@ -99,7 +108,8 @@ fun EditListingDialog(
                             price = price,
                             payment = payment,
                             location = location,
-                            condition = condition
+                            condition = condition,
+                            photoUri = photoUri
                         )
                     )
                 }

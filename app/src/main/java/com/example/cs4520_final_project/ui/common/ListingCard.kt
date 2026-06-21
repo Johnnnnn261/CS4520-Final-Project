@@ -26,14 +26,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.example.cs4520_final_project.data.ListingInfo
 
 @Composable
 fun ListingCard(
-    listing: ListingInfo,
-    onClick: () -> Unit
+    listing: ListingInfo, onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -44,19 +45,7 @@ fun ListingCard(
         colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(180.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    if (listing.photoUri == null) "No Photo" else "Photo Selected",
-                    color = Color.DarkGray
-                )
-            }
+            ListingImage(listing.photoUri, listing.title)
 
             Spacer(modifier = Modifier.height(12.dp))
 
@@ -75,9 +64,7 @@ fun ListingCard(
             Spacer(modifier = Modifier.height(6.dp))
 
             Text(
-                listing.description,
-                maxLines = 2,
-                color = Color.DarkGray
+                listing.description, maxLines = 2, color = Color.DarkGray
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -91,8 +78,7 @@ fun ListingCard(
                 )
 
                 Text(
-                    "${listing.location} • ${listing.condition}",
-                    color = Color.Gray
+                    "${listing.location} • ${listing.condition}", color = Color.Gray
                 )
             }
 
