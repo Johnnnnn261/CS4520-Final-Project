@@ -16,11 +16,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -49,8 +54,9 @@ fun ProfileScreen(
     profileInfo: ProfileInfo?,
     listings: List<ListingInfo>,
     onUpdateProfile: (ProfileInfo) -> Unit,
-    onUpdateListing: (ListingInfo) -> Unit
-) {
+    onUpdateListing: (ListingInfo) -> Unit,
+    onSignOut: () -> Unit,
+    ) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var listingBeingEdited by remember { mutableStateOf<ListingInfo?>(null) }
 
@@ -61,8 +67,7 @@ fun ProfileScreen(
             onSave = { updatedProfile ->
                 onUpdateProfile(updatedProfile)
                 showEditProfileDialog = false
-            }
-        )
+            })
     }
 
     if (listingBeingEdited != null) {
@@ -72,21 +77,23 @@ fun ProfileScreen(
             onSave = { updatedListing ->
                 onUpdateListing(updatedListing)
                 listingBeingEdited = null
-            }
-        )
+            })
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Profile") },
-                colors = TopAppBarDefaults.topAppBarColors(
+                title = { Text("Profile") }, colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onSignOut) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Sign Out")
+                    }
+                }
             )
-        }
-    ) { padding ->
+        }) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -96,13 +103,11 @@ fun ProfileScreen(
         ) {
             item {
                 ProfileInfoCard(
-                    profileInfo = profileInfo,
-                    onEditProfile = {
+                    profileInfo = profileInfo, onEditProfile = {
                         if (profileInfo != null) {
                             showEditProfileDialog = true
                         }
-                    }
-                )
+                    })
             }
 
             item {
@@ -120,11 +125,9 @@ fun ProfileScreen(
             } else {
                 items(listings) { listing ->
                     MyListingCard(
-                        listing = listing,
-                        onEditListing = {
+                        listing = listing, onEditListing = {
                             listingBeingEdited = listing
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -133,8 +136,7 @@ fun ProfileScreen(
 
 @Composable
 private fun ProfileInfoCard(
-    profileInfo: ProfileInfo?,
-    onEditProfile: () -> Unit
+    profileInfo: ProfileInfo?, onEditProfile: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -176,8 +178,7 @@ private fun ProfileInfoCard(
 
 @Composable
 private fun MyListingCard(
-    listing: ListingInfo,
-    onEditListing: () -> Unit
+    listing: ListingInfo, onEditListing: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -193,7 +194,9 @@ private fun MyListingCard(
             ) {
                 Column {
                     Text(listing.title, fontWeight = FontWeight.Bold)
-                    Text("Listed for $${listing.price}", style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Listed for $${listing.price}", style = MaterialTheme.typography.titleMedium
+                    )
                 }
 
                 Text("Available", color = Color.Gray)
@@ -208,8 +211,7 @@ private fun MyListingCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = onEditListing,
-                modifier = Modifier.fillMaxWidth()
+                onClick = onEditListing, modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Edit Listing")
             }
@@ -219,77 +221,68 @@ private fun MyListingCard(
 
 @Composable
 private fun EditProfileDialog(
-    profileInfo: ProfileInfo,
-    onDismiss: () -> Unit,
-    onSave: (ProfileInfo) -> Unit
+    profileInfo: ProfileInfo, onDismiss: () -> Unit, onSave: (ProfileInfo) -> Unit
 ) {
     var fullName by remember { mutableStateOf(profileInfo.fullName) }
     var schoolEmail by remember { mutableStateOf(profileInfo.schoolEmail) }
     var campusArea by remember { mutableStateOf(profileInfo.campusArea) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Profile") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (errorMessage != null) {
-                    Text(errorMessage ?: "", color = Color.Red)
-                }
-
-                OutlinedTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text("Full Name") },
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = schoolEmail,
-                    onValueChange = { schoolEmail = it },
-                    label = { Text("School Email") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                )
-
-                OutlinedTextField(
-                    value = campusArea,
-                    onValueChange = { campusArea = it },
-                    label = { Text("Campus Area") },
-                    singleLine = true
-                )
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Edit Profile") }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (errorMessage != null) {
+                Text(errorMessage ?: "", color = Color.Red)
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    errorMessage = when {
-                        fullName.isBlank() -> "Full Name cannot be empty"
-                        schoolEmail.isBlank() -> "School Email cannot be empty"
-                        campusArea.isBlank() -> "Campus Area cannot be empty"
-                        else -> null
-                    }
 
-                    if (errorMessage == null) {
-                        onSave(
-                            profileInfo.copy(
-                                fullName = fullName,
-                                schoolEmail = schoolEmail,
-                                campusArea = campusArea
-                            )
-                        )
-                    }
-                }
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            OutlinedTextField(
+                value = fullName,
+                onValueChange = { fullName = it },
+                label = { Text("Full Name") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = schoolEmail,
+                onValueChange = { schoolEmail = it },
+                label = { Text("School Email") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+            )
+
+            OutlinedTextField(
+                value = campusArea,
+                onValueChange = { campusArea = it },
+                label = { Text("Campus Area") },
+                singleLine = true
+            )
         }
-    )
+    }, confirmButton = {
+        TextButton(
+            onClick = {
+                errorMessage = when {
+                    fullName.isBlank() -> "Full Name cannot be empty"
+                    schoolEmail.isBlank() -> "School Email cannot be empty"
+                    campusArea.isBlank() -> "Campus Area cannot be empty"
+                    else -> null
+                }
+
+                if (errorMessage == null) {
+                    onSave(
+                        profileInfo.copy(
+                            fullName = fullName,
+                            schoolEmail = schoolEmail,
+                            campusArea = campusArea
+                        )
+                    )
+                }
+            }) {
+            Text("Save")
+        }
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    })
 }
 
 @Composable
@@ -306,93 +299,86 @@ private fun EditListingDialog(
     var condition by remember { mutableStateOf(listing.condition) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Listing") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (errorMessage != null) {
-                    Text(errorMessage ?: "", color = Color.Red)
-                }
-
-                OutlinedTextField(
-                    value = title,
-                    onValueChange = { title = it },
-                    label = { Text("Title") },
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description") },
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = price,
-                    onValueChange = { price = it },
-                    label = { Text("Price") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-
-                OutlinedTextField(
-                    value = payment,
-                    onValueChange = { payment = it },
-                    label = { Text("Payment") },
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = location,
-                    onValueChange = { location = it },
-                    label = { Text("Location") },
-                    singleLine = true
-                )
-
-                OutlinedTextField(
-                    value = condition,
-                    onValueChange = { condition = it },
-                    label = { Text("Condition") },
-                    singleLine = true
-                )
+    AlertDialog(onDismissRequest = onDismiss, title = { Text("Edit Listing") }, text = {
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (errorMessage != null) {
+                Text(errorMessage ?: "", color = Color.Red)
             }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    errorMessage = when {
-                        title.isBlank() -> "Title cannot be empty"
-                        description.isBlank() -> "Description cannot be empty"
-                        price.isBlank() -> "Price cannot be empty"
-                        payment.isBlank() -> "Payment cannot be empty"
-                        location.isBlank() -> "Location cannot be empty"
-                        condition.isBlank() -> "Condition cannot be empty"
-                        else -> null
-                    }
 
-                    if (errorMessage == null) {
-                        onSave(
-                            listing.copy(
-                                title = title,
-                                description = description,
-                                price = price,
-                                payment = payment,
-                                location = location,
-                                condition = condition
-                            )
-                        )
-                    }
-                }
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
+            OutlinedTextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = price,
+                onValueChange = { price = it },
+                label = { Text("Price") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = payment,
+                onValueChange = { payment = it },
+                label = { Text("Payment") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                label = { Text("Location") },
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = condition,
+                onValueChange = { condition = it },
+                label = { Text("Condition") },
+                singleLine = true
+            )
         }
-    )
+    }, confirmButton = {
+        TextButton(
+            onClick = {
+                errorMessage = when {
+                    title.isBlank() -> "Title cannot be empty"
+                    description.isBlank() -> "Description cannot be empty"
+                    price.isBlank() -> "Price cannot be empty"
+                    payment.isBlank() -> "Payment cannot be empty"
+                    location.isBlank() -> "Location cannot be empty"
+                    condition.isBlank() -> "Condition cannot be empty"
+                    else -> null
+                }
+
+                if (errorMessage == null) {
+                    onSave(
+                        listing.copy(
+                            title = title,
+                            description = description,
+                            price = price,
+                            payment = payment,
+                            location = location,
+                            condition = condition
+                        )
+                    )
+                }
+            }) {
+            Text("Save")
+        }
+    }, dismissButton = {
+        TextButton(onClick = onDismiss) {
+            Text("Cancel")
+        }
+    })
 }

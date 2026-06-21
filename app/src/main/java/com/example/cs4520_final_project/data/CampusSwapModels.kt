@@ -35,3 +35,10 @@ data class CommentInfo(
     val text: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
+
+data class ChatMessage(
+    val id: Long = System.currentTimeMillis(),
+    val senderId: String = "",
+    val text: String = "",
+    val createdAt: Long = System.currentTimeMillis()
+)
