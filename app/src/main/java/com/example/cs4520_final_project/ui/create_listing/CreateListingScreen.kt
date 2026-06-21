@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -52,7 +53,11 @@ import androidx.compose.ui.unit.dp
 import com.example.cs4520_final_project.data.ListingInfo
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
 import com.example.cs4520_final_project.ui.common.DropdownOption
+import com.example.cs4520_final_project.ui.common.ListingImage
 import com.example.cs4520_final_project.ui.common.conditionOptions
 import com.example.cs4520_final_project.ui.common.paymentOptions
 
@@ -68,13 +73,43 @@ fun CreateListingScreen(
 
     var location by remember { mutableStateOf("") }
     var condition by remember { mutableStateOf("") }
-    var listingPhotoUri by remember { mutableStateOf<Uri?>(null) }
+    var listingPhotoUri by remember { mutableStateOf<String?>(null) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    val photoPickerLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri ->
-        listingPhotoUri = uri
+
+    var showUrlDialog by remember { mutableStateOf(false) }
+    var urlInput by remember { mutableStateOf("") }
+
+    if (showUrlDialog) {
+        AlertDialog(
+            onDismissRequest = { showUrlDialog = false },
+            title = { Text("Add Photo URL") },
+            text = {
+                OutlinedTextField(
+                    value = urlInput,
+                    onValueChange = { urlInput = it },
+                    placeholder = { Text("https://...") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                Button(onClick = {
+                    listingPhotoUri = urlInput.trim().ifBlank { null }
+                    showUrlDialog = false
+                    urlInput = ""
+                }) {
+                    Text("Add")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showUrlDialog = false
+                    urlInput = ""
+                }) {
+                    Text("Cancel")
+                }
+            })
     }
 
     if (errorMessage != null) {
@@ -88,7 +123,7 @@ fun CreateListingScreen(
                 }
             })
     }
-    
+
 
     Scaffold(
         topBar = {
@@ -153,16 +188,19 @@ fun CreateListingScreen(
             Box(
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
-                    .size(160.dp)
+                    .then(
+                        if (listingPhotoUri != null) Modifier.fillMaxWidth().heightIn(max = 250.dp)
+                        else Modifier.size(160.dp)
+                    )
                     .clip(RoundedCornerShape(8.dp))
                     .background(Color.LightGray)
-                    .clickable { photoPickerLauncher.launch("image/*") },
-                contentAlignment = Alignment.Center
+                    .clickable { showUrlDialog = true }, contentAlignment = Alignment.Center
             ) {
                 if (listingPhotoUri == null) {
-                    Text("Add Photo/Video", color = Color.DarkGray)
+                    Text("Add Photo", color = Color.DarkGray)
                 } else {
-                    Text("Photo Selected", color = Color.DarkGray)
+                    ListingImage(listingPhotoUri, "")
+
                 }
             }
 
