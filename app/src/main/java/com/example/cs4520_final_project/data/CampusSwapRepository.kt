@@ -51,6 +51,9 @@ class CampusSwapRepository(private val uid: String) {
             .await()
     }
 
+    suspend fun deleteListing(listingId: Long) {
+        listingCollection.document(listingId.toString()).delete().await()
+    }
 
     fun observeListings(): Flow<List<ListingInfo>> = callbackFlow {
         val registration = listingCollection.orderBy(

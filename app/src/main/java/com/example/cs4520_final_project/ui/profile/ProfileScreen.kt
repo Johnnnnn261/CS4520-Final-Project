@@ -56,7 +56,8 @@ fun ProfileScreen(
     onUpdateProfile: (ProfileInfo) -> Unit,
     onUpdateListing: (ListingInfo) -> Unit,
     onSignOut: () -> Unit,
-    ) {
+    onDeleteListing: (listingId: Long) -> Unit,
+) {
     var showEditProfileDialog by remember { mutableStateOf(false) }
     var listingBeingEdited by remember { mutableStateOf<ListingInfo?>(null) }
 
@@ -86,13 +87,11 @@ fun ProfileScreen(
                 title = { Text("Profile") }, colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                ),
-                actions = {
+                ), actions = {
                     IconButton(onClick = onSignOut) {
                         Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Sign Out")
                     }
-                }
-            )
+                })
         }) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -124,10 +123,9 @@ fun ProfileScreen(
                 }
             } else {
                 items(listings) { listing ->
-                    MyListingCard(
-                        listing = listing, onEditListing = {
-                            listingBeingEdited = listing
-                        })
+                    MyListingCard(listing = listing, onEditListing = {
+                        listingBeingEdited = listing
+                    }, onDeleteListing)
                 }
             }
         }

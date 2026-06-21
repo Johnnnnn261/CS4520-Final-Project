@@ -200,6 +200,9 @@ fun CoreNavigation(currentUserId: String, campusSwapVm: CampusSwapViewModel) {
                     },
                     onUpdateListing = { updatedListing ->
                         campusSwapVm.updateListing(updatedListing)
+                    },
+                    onDeleteListing = { listingId ->
+                        campusSwapVm.deleteListing(listingId)
                     })
             }
 

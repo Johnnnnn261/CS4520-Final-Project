@@ -83,10 +83,9 @@ class CampusSwapViewModel(
         _profileInfo.value = null
     }
 
-    fun removeListing(id: Long) {
+    fun deleteListing(listingId: Long) {
         viewModelScope.launch {
-            val remote = firestoreRepo
-            remote
+            firestoreRepo?.deleteListing(listingId)
         }
     }
 
